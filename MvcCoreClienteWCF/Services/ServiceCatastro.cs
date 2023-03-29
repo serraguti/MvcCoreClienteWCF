@@ -1,5 +1,7 @@
 ﻿using MvcCoreClienteWCF.Models;
 using ReferenceCatastro;
+using System.ComponentModel;
+using System.Reflection.Metadata;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -24,12 +26,13 @@ namespace MvcCoreClienteWCF.Services
             //UTILIZAMOS LINQ TO XML PARA EXTRAER LOS DATOS
             XDocument document = XDocument.Parse(dataXml);
             List<Provincia> provinciasList = new List<Provincia>();
-            var consulta = from datos in document.Descendants("prov")
+            XNamespace ns = "http://www.catastro.meh.es/";
+            var consulta = from datos in document.Descendants(ns + "prov")
                            select datos;
             foreach (XElement tag in consulta)
             {
-                string cp = tag.Element("cpine").Value;
-                string nombre = tag.Element("np").Value;
+                string cp = tag.Element(ns + "cpine").Value;
+                string nombre = tag.Element(ns + "np").Value;
                 Provincia p = new Provincia
                 {
                     IdProvincia = int.Parse(cp),
@@ -38,6 +41,18 @@ namespace MvcCoreClienteWCF.Services
                 provinciasList.Add(p);
             }
             return provinciasList;
+        }
+
+        public async Task<List<string>> GetMunicipiosAsync(string provincia)
+        {
+            ConsultaMunicipio1 response = await
+                this.client.ObtenerMunicipiosAsync(provincia, null);
+            XmlNode nodo = response.Municipios;
+            XDocument document = XDocument.Parse(nodo.OuterXml);
+            XNamespace ns = "http://www.catastro.meh.es/";
+            var consulta = from datos in document.Descendants(ns + "muni")
+                           select datos.Element(ns + "nm").Value;
+            return consulta.ToList();
         }
     }
 }
