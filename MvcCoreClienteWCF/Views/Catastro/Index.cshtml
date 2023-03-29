@@ -1,0 +1,12 @@
+﻿@model List<Provincia>
+
+<h1 style="color:blue">Catastro Service</h1>
+
+<ul class="list-group">
+    @foreach (Provincia p in Model)
+    {
+        <li class="list-group-item">
+            @p.Nombre
+        </li>
+    }
+</ul>
